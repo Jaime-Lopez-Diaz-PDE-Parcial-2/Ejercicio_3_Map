@@ -1,5 +1,12 @@
 # Ejercicio 3 - Mapa de Farmacias de Zaragoza
 
+Jaime López Díaz
+
+Links:
+- Ejercicio 1: https://github.com/Jaime-Lopez-Diaz-PDE-Parcial-2/Ejercicio-1.git
+- Ejercicio 2: https://github.com/Jaime-Lopez-Diaz-PDE-Parcial-2/Ejercicio_2.git
+- Ejercicio 3: https://github.com/Jaime-Lopez-Diaz-PDE-Parcial-2/Ejercicio_3_Map.git
+
 Este ejercicio en Java Android Studio es una aplicación que implementa la funcionalidad de mapas con Google Maps, integración con Firebase y uso de APIs públicas. A continuación, se describen en detalle las partes principales del código.
 
 ---
