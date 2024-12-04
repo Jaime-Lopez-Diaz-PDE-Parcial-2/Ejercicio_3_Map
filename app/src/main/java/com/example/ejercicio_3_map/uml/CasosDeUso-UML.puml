@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+
+actor Usuario
+
+usecase "Registrar Usuario" as UC_RegistrarUsuario
+usecase "Iniciar Sesión" as UC_IniciarSesion
+usecase "Visualizar Mapa de Farmacias" as UC_VisualizarMapa
+usecase "Seleccionar Farmacia" as UC_SeleccionarFarmacia
+usecase "Ver Detalles de Farmacia" as UC_VerDetallesFarmacia
+usecase "Configurar Ubicación Actual" as UC_ConfigurarUbicacion
+
+Usuario --> UC_RegistrarUsuario
+Usuario --> UC_IniciarSesion
+Usuario --> UC_VisualizarMapa
+Usuario --> UC_SeleccionarFarmacia
+Usuario --> UC_VerDetallesFarmacia
+Usuario --> UC_ConfigurarUbicacion
+@enduml

@@ -1,0 +1,143 @@
+@startuml
+class Credenciales {
+    - String id
+    - String contrasena
+    + Credenciales(String id, String contrasena)
+    + String getId()
+    + void setId(String id)
+    + String getContrasena()
+    + void setContrasena(String contrasena)
+}
+
+class Ubicacion {
+    - int id
+    - double latitud
+    - double longitud
+    - String direccion
+    + Ubicacion(double latitud, double longitud, String direccion)
+    + Ubicacion()
+    + int getId()
+    + void setId(int id)
+    + double getLatitud()
+    + void setLatitud(double latitud)
+    + double getLongitud()
+    + void setLongitud(double longitud)
+    + String getDireccion()
+    + void setDireccion(String direccion)
+}
+
+class Usuario {
+    - String id
+    - String nombre
+    - String correo
+    - String rol
+    - Ubicacion ubicacionActual
+    - String idCredenciales
+    + Usuario(String id, String nombre, String correo, String rol, Ubicacion ubicacionActual, String idCredenciales)
+    + Usuario()
+    + String getId()
+    + void setId(String id)
+    + String getNombre()
+    + void setNombre(String nombre)
+    + String getCorreo()
+    + void setCorreo(String correo)
+    + String getRol()
+    + void setRol(String rol)
+    + Ubicacion getUbicacionActual()
+    + void setUbicacionActual(Ubicacion ubicacionActual)
+    + String getIdCredenciales()
+    + void setIdCredenciales(String idCredenciales)
+    + boolean esAdministrador()
+}
+
+class FirebaseHandler {
+    - FirebaseFirestore db
+    + FirebaseHandler()
+    + void guardarUsuario(Usuario usuario, OnCompleteListener<Void> onCompleteListener)
+    + void obtenerUsuario(String id, OnCompleteListener<DocumentSnapshot> listener)
+    + void eliminarUsuario(String id)
+    + void guardarCredenciales(Credenciales credenciales, OnCompleteListener<Void> onCompleteListener)
+    + void obtenerUsuarioPorCorreo(String email, OnCompleteListener<QuerySnapshot> listener)
+    + void obtenerCredenciales(String idCredenciales, OnCompleteListener<DocumentSnapshot> listener)
+    + void guardarUbicacion(String userId, Ubicacion ubicacion, OnCompleteListener<Void> listener)
+}
+
+class Farmacia {
+    - String id
+    - String nombre
+    - String direccion
+    - double latitud
+    - double longitud
+    + Farmacia(String id, String nombre, String direccion, double latitud, double longitud)
+    + String getId()
+    + void setId(String id)
+    + String getNombre()
+    + void setNombre(String nombre)
+    + String getDireccion()
+    + void setDireccion(String direccion)
+    + double getLatitud()
+    + void setLatitud(double latitud)
+    + double getLongitud()
+    + void setLongitud(double longitud)
+}
+
+class FarmaciaHandler {
+    - FirebaseFirestore db
+    + FarmaciaHandler()
+    + void guardarFarmacia(Farmacia farmacia, OnCompleteListener<Void> onCompleteListener)
+    + void obtenerFarmacias(OnCompleteListener<QuerySnapshot> listener)
+}
+
+class LoginActivity {
+    - EditText etEmail
+    - EditText etPassword
+    - Button btnLogin
+    - TextView tvRegister
+    - FirebaseHandler firebaseHandler
+    + void onCreate(Bundle savedInstanceState)
+    + void login()
+    + void guardarSesion(String email)
+    + void redirigirPantallaPrincipal()
+}
+
+class RegisterActivity {
+    - EditText etName
+    - EditText etEmail
+    - EditText etPassword
+    - Spinner spRole
+    - Button btnRegister
+    - FirebaseHandler firebaseHandler
+    + void onCreate(Bundle savedInstanceState)
+    + void register()
+    + void onRegisterSuccess(String email)
+}
+
+class MapaFarmaciasActivity {
+    - GoogleMap map
+    - FarmaciaHandler farmaciaHandler
+    - Ubicacion ubicacionUsuario
+    + void onCreate(Bundle savedInstanceState)
+    + void cargarFarmaciasEnMapa()
+    + void mostrarDetalleFarmacia(Farmacia farmacia)
+}
+
+class PantallaPrincipalActivity {
+    - DrawerLayout drawerLayout
+    - NavigationView navigationView
+    + void onCreate(Bundle savedInstanceState)
+    + void configurarMenuDesplegable()
+}
+
+Credenciales "1" -- "*" Usuario : usa
+Usuario "1" -- "1" Ubicacion : tiene
+Usuario "1" -- "*" FirebaseHandler : usa
+FarmaciaHandler "1" -- "*" Farmacia : administra
+FirebaseHandler "1" -- "*" Usuario : administra
+FirebaseHandler "1" -- "*" Credenciales : administra
+FirebaseHandler "1" -- "*" Ubicacion : administra
+MapaFarmaciasActivity "1" -- "*" Farmacia : visualiza
+MapaFarmaciasActivity "1" -- "1" Usuario : localiza
+PantallaPrincipalActivity "1" -- "*" MapaFarmaciasActivity : redirige
+PantallaPrincipalActivity "1" -- "*" LoginActivity : redirige
+PantallaPrincipalActivity "1" -- "*" RegisterActivity : redirige
+@enduml

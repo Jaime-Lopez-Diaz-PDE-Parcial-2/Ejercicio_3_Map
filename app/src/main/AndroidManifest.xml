@@ -13,9 +13,11 @@
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
         <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="default_channel"/>
         <!--   Actividades declaradas   -->
-
+        <activity android:name=".main.PantallaPrincipalActivity" android:exported="false" tools:ignore="Instantiatable"/>
+        <activity android:name=".main.ui.activity.RegisterActivity" android:exported="false" tools:ignore="Instantiatable"/>
+        <activity android:name=".main.ui.activity.MapaFarmaciasActivity" android:exported="false" tools:ignore="Instantiatable"/>
         <!--   Pantalla principal   -->
-        <activity android:name=".PantallaPrincipalActivity" android:exported="true" tools:ignore="Instantiatable">
+        <activity android:name=".main.ui.activity.LoginActivity" android:exported="true" tools:ignore="Instantiatable">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

@@ -1,3 +1,3 @@
-package com.example.ejercicio_3_map;
+package com.example.ejercicio_3_map.main;
 
 public class PantallaPrincipalActivity {}
