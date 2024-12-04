@@ -40,7 +40,7 @@ Permite a los usuarios registrarse en la aplicación. Incluye un formulario de r
 ## **MapaFarmaciasActivity**
 
 ### **Descripción General**
-Muestra un mapa interactivo con las farmacias cercanas usando Google Maps. Los datos se obtienen de una API pública y se representan como marcadores en el mapa.
+Muestra un mapa interactivo con las farmacias de Zaragoza usando Google Maps. Los datos se obtienen de una API pública del ayuntamiento de Zaragoza y se representan como marcadores en el mapa. Además muestra la posición del usuario mediante los Sensores de Localización del dispositivo.
 
 ### **Elementos Destacados**
 - **Google Maps API**: Proporciona un mapa interactivo.
