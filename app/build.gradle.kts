@@ -55,6 +55,9 @@ dependencies {
     implementation ("androidx.room:room-ktx:2.5.0")
     implementation ("com.google.code.gson:gson:2.10.1")
     implementation ("com.google.android.gms:play-services-auth:20.1.0")
-    implementation ("com.google.android.gms:play-services-location:18.0.0")
+    implementation ("com.google.android.gms:play-services-maps:18.1.0")
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+    implementation ("com.google.firebase:firebase-appcheck-safetynet:16.0.0")
+
 
 }

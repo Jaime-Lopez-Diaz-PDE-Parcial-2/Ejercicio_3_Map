@@ -1,20 +1,33 @@
 package com.example.ejercicio_3_map.main.ui.activity;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.example.ejercicio_3_map.R;
 import com.example.ejercicio_3_map.main.PantallaPrincipalActivity;
 import com.example.ejercicio_3_map.main.model.Credenciales;
+import com.example.ejercicio_3_map.main.model.Ubicacion;
 import com.example.ejercicio_3_map.main.model.Usuario;
 import com.example.ejercicio_3_map.main.repos.firebase.FirebaseHandler;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -23,6 +36,10 @@ public class RegisterActivity extends AppCompatActivity {
     private Spinner spRole;
     private Button btnRegister;
     private FirebaseHandler firebaseHandler;
+    private FusedLocationProviderClient fusedLocationClient;
+    private Ubicacion ubicacionActual;
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 2001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +47,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         firebaseHandler = new FirebaseHandler();
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         etName = findViewById(R.id.etName);
         etEmail = findViewById(R.id.etEmail);
@@ -37,7 +55,78 @@ public class RegisterActivity extends AppCompatActivity {
         spRole = findViewById(R.id.spRole);
         btnRegister = findViewById(R.id.btnRegister);
 
-        btnRegister.setOnClickListener(v -> register());
+        btnRegister.setOnClickListener(v -> checkLocationAndRegister());
+    }
+
+    private void checkLocationAndRegister() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            fetchUserLocation(this::register);
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void fetchUserLocation(Runnable onLocationFetched) {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        // Verificar si GPS o red están habilitados
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
+                !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            Toast.makeText(this, "Por favor, activa el GPS o la red para obtener la ubicación.", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+            return;
+        }
+
+        LocationRequest locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(2000)
+                .setFastestInterval(1000);
+
+        fusedLocationClient.requestLocationUpdates(locationRequest, new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                Location location = getValidLocation(locationResult);
+                if (location != null) {
+                    ubicacionActual = new Ubicacion(location.getLatitude(), location.getLongitude(), "Ubicación actual");
+                    fusedLocationClient.removeLocationUpdates(this);
+                    onLocationFetched.run();
+                } else {
+                    Toast.makeText(RegisterActivity.this, "No se pudo obtener una ubicación válida. Intentando proveedor de red.", Toast.LENGTH_LONG).show();
+                    fetchLocationFromNetwork(onLocationFetched);
+                }
+            }
+        }, null);
+    }
+
+    private void fetchLocationFromNetwork(Runnable onLocationFetched) {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        @SuppressLint("MissingPermission") Location networkLocation =
+                locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        if (networkLocation != null && isValidLocation(networkLocation)) {
+            ubicacionActual = new Ubicacion(networkLocation.getLatitude(), networkLocation.getLongitude(), "Ubicación de red");
+            onLocationFetched.run();
+        } else {
+            Toast.makeText(this, "No se pudo obtener la ubicación. Reintente activando GPS.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private Location getValidLocation(LocationResult locationResult) {
+        for (Location location : locationResult.getLocations()) {
+            if (location != null && isValidLocation(location)) {
+                return location;
+            }
+        }
+        return null;
+    }
+
+    private boolean isValidLocation(Location location) {
+        if (location == null) return false;
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
     }
 
     private void register() {
@@ -51,22 +140,22 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        if (ubicacionActual == null) {
+            Toast.makeText(this, "Ubicación no disponible. Por favor, intente nuevamente.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         try {
-            // Registrar al usuario en Firebase Authentication
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(authTask -> {
                         if (authTask.isSuccessful()) {
-                            // Éxito al registrar en Firebase Authentication
                             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                            // Crear instancias de Credenciales y Usuario
                             Credenciales credenciales = new Credenciales(userId, password);
-                            Usuario usuario = new Usuario(userId, name, email, role, null, userId);
+                            Usuario usuario = new Usuario(userId, name, email, role, ubicacionActual, userId);
 
-                            // Guardar usuario en Firebase Firestore
                             firebaseHandler.guardarUsuario(usuario, taskUsuario -> {
                                 if (taskUsuario.isSuccessful()) {
-                                    // Guardar credenciales en Firestore
                                     firebaseHandler.guardarCredenciales(credenciales, taskCredenciales -> {
                                         if (taskCredenciales.isSuccessful()) {
                                             onRegisterSuccess(email);
@@ -79,39 +168,34 @@ public class RegisterActivity extends AppCompatActivity {
                                 }
                             });
                         } else {
-                            // Error al registrar en Firebase Authentication
                             Toast.makeText(this, "Error al registrar en FirebaseAuth: " + authTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
         } catch (Exception e) {
-            // Manejo de errores inesperados
             Toast.makeText(this, "Error durante el registro: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
-    /**
-     * Método para manejar el éxito del registro.
-     *
-     * @param email Correo electrónico del usuario registrado.
-     */
     private void onRegisterSuccess(String email) {
-        // Guardar sesión automáticamente después del registro
         try {
-            SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-            prefs.edit()
-                    .putBoolean("isLoggedIn", true)
-                    .putString("userEmail", email)
-                    .apply();
-
-            // Mostrar un mensaje de éxito
             Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
-
-            // Redirigir a la pantalla principal
-            Intent intent = new Intent(RegisterActivity.this, PantallaPrincipalActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(RegisterActivity.this, PantallaPrincipalActivity.class));
             finish();
         } catch (Exception e) {
             Toast.makeText(this, "Error al guardar sesión: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fetchUserLocation(this::register);
+            } else {
+                Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

@@ -63,13 +63,4 @@ public class FirebaseHandler {
                 .get()
                 .addOnCompleteListener(listener);
     }
-
-    public void guardarUbicacion(String userId, Ubicacion ubicacion, OnCompleteListener<Void> listener) {
-        db.collection("ubicaciones")
-                .document(userId)
-                .set(ubicacion)
-                .addOnCompleteListener(listener)
-                .addOnFailureListener(e -> Log.e("FirebaseHandler", "Error al guardar ubicación", e));
-    }
-
 }
