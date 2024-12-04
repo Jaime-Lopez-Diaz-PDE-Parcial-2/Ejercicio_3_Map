@@ -8,5 +8,10 @@
 
 ![image](https://github.com/user-attachments/assets/dab886c3-d145-48ef-9033-874ad840cece)
 
+- Buscador de Farmacias (Filtro de ubicación en el mapa):
+
+![image](https://github.com/user-attachments/assets/e111bec3-1eb0-4f3a-8e4a-56b347309e93)
+
+
 
 
